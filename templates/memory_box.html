@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block title %}Memory Box - Our Special Moments{% endblock %}
+
+{% block content %}
+<div class="memory-box-container">
+    <div class="memory-box-header">
+        <h1 class="memory-title">📸 Our Memory Box</h1>
+        <p class="memory-subtitle">Every moment with you is a treasure to cherish forever</p>
+    </div>
+
+    <div class="upload-section">
+        <div class="upload-card">
+            <h3>Add Our Special Moments</h3>
+            <form id="photo-upload-form" enctype="multipart/form-data">
+                <div class="file-input-wrapper">
+                    <input type="file" id="photo-input" name="photo" accept="image/*" class="file-input" multiple>
+                    <label for="photo-input" class="file-label">
+                        <span class="upload-icon">📷</span>
+                        <span class="upload-text">Choose photos of us</span>
+                    </label>
+                </div>
+                <div class="upload-info">
+                    <p>Supported formats: PNG, JPG, JPEG, GIF, WEBP (Max 16MB)</p>
+                </div>
+                <button type="submit" class="btn btn-primary upload-btn">
+                    <span class="btn-icon">💾</span>
+                    Save to Memory Box
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="memories-grid" id="memories-grid">
+        <!-- Photos will be displayed here -->
+        <div class="memory-placeholder">
+            <div class="placeholder-icon">💕</div>
+            <p>Upload our first photo together to start our memory collection!</p>
+        </div>
+    </div>
+
+    <div class="memory-stats">
+        <div class="stat-card">
+            <div class="stat-number" id="total-memories">0</div>
+            <div class="stat-label">Memories</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="days-together">∞</div>
+            <div class="stat-label">Days of Love</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">💕</div>
+            <div class="stat-label">Love Level</div>
+        </div>
+    </div>
+</div>
+
+<div class="floating-memories">
+    <div class="memory-bubble">💕</div>
+    <div class="memory-bubble">📸</div>
+    <div class="memory-bubble">💖</div>
+    <div class="memory-bubble">💝</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('photo-upload-form');
+    const fileInput = document.getElementById('photo-input');
+    const memoriesGrid = document.getElementById('memories-grid');
+
+    // Load existing memories on page load
+    loadExistingMemories();
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const files = fileInput.files;
+        if (files.length === 0) {
+            alert('Please select at least one photo!');
+            return;
+        }
+        
+        // Upload each file
+        Array.from(files).forEach((file, index) => {
+            uploadFile(file, index);
+        });
+    });
+
+    function uploadFile(file, index) {
+        const formData = new FormData();
+        formData.append('photo', file);
+        
+        // Show upload progress
+        const uploadBtn = document.querySelector('.upload-btn');
+        const originalText = uploadBtn.innerHTML;
+        uploadBtn.innerHTML = `<span class="btn-icon">⏳</span> Uploading... (${index + 1})`;
+        uploadBtn.disabled = true;
+        
+        fetch('/upload-photo', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                addMemoryToGrid(data);
+                triggerConfetti();
+                updateStats();
+            } else {
+                alert(`Error uploading ${file.name}: ${data.error}`);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert(`Error uploading ${file.name}`);
+        })
+        .finally(() => {
+            // Reset button after all uploads
+            if (index === fileInput.files.length - 1) {
+                uploadBtn.innerHTML = originalText;
+                uploadBtn.disabled = false;
+                fileInput.value = ''; // Clear file input
+            }
+        });
+    }
+
+    function loadExistingMemories() {
+        fetch('/get-memories')
+        .then(response => response.json())
+        .then(data => {
+            if (data.memories && data.memories.length > 0) {
+                // Remove placeholder
+                const placeholder = document.querySelector('.memory-placeholder');
+                if (placeholder) {
+                    placeholder.remove();
+                }
+                
+                // Add each memory
+                data.memories.forEach(memory => {
+                    addMemoryToGrid(memory, false);
+                });
+                
+                updateStats();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading memories:', error);
+        });
+    }
+
+    function addMemoryToGrid(memoryData, animate = true) {
+        const memoryCard = document.createElement('div');
+        memoryCard.className = 'memory-card';
+        memoryCard.dataset.filename = memoryData.filename;
+        
+        const uploadDate = new Date(memoryData.upload_date || memoryData.upload_date).toLocaleDateString();
+        
+        memoryCard.innerHTML = `
+            <div class="memory-image">
+                <img src="${memoryData.url || memoryData.filename}" alt="Our memory" loading="lazy">
+            </div>
+            <div class="memory-overlay">
+                <div class="memory-date">${uploadDate}</div>
+                <div class="memory-actions">
+                    <button class="memory-delete-btn" onclick="deleteMemory('${memoryData.filename}')" title="Delete memory">🗑️</button>
+                    <div class="memory-heart">💕</div>
+                </div>
+            </div>
+        `;
+        
+        // Remove placeholder if it exists
+        const placeholder = document.querySelector('.memory-placeholder');
+        if (placeholder) {
+            placeholder.remove();
+        }
+        
+        memoriesGrid.appendChild(memoryCard);
+        
+        // Add animation if requested
+        if (animate) {
+            memoryCard.style.opacity = '0';
+            memoryCard.style.transform = 'scale(0.8)';
+            setTimeout(() => {
+                memoryCard.style.opacity = '1';
+                memoryCard.style.transform = 'scale(1)';
+            }, 100);
+        }
+    }
+
+    function deleteMemory(filename) {
+        if (confirm('Are you sure you want to delete this memory?')) {
+            fetch(`/delete-memory/${filename}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const memoryCard = document.querySelector(`[data-filename="${filename}"]`);
+                    if (memoryCard) {
+                        memoryCard.style.opacity = '0';
+                        memoryCard.style.transform = 'scale(0.8)';
+                        setTimeout(() => {
+                            memoryCard.remove();
+                            updateStats();
+                            
+                            // Show placeholder if no memories left
+                            if (document.querySelectorAll('.memory-card').length === 0) {
+                                showPlaceholder();
+                            }
+                        }, 300);
+                    }
+                } else {
+                    alert('Error deleting memory: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error deleting memory');
+            });
+        }
+    }
+
+    function showPlaceholder() {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'memory-placeholder';
+        placeholder.innerHTML = `
+            <div class="placeholder-icon">💕</div>
+            <p>Upload our first photo together to start our memory collection!</p>
+        `;
+        memoriesGrid.appendChild(placeholder);
+    }
+
+    function updateStats() {
+        const totalMemories = document.querySelectorAll('.memory-card').length;
+        document.getElementById('total-memories').textContent = totalMemories;
+    }
+
+    function triggerConfetti() {
+        confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+        });
+    }
+
+    // Make deleteMemory function globally available
+    window.deleteMemory = deleteMemory;
+});
+</script>
+{% endblock %} 

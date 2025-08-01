@@ -1,0 +1,448 @@
+{% extends "base.html" %}
+
+{% block title %}50 Reasons Why I Love You{% endblock %}
+
+{% block content %}
+<div class="scratch-cards-container">
+    <div class="scratch-header">
+        <h1 class="scratch-title">💝 50 Reasons Why I Love You</h1>
+        <p class="scratch-subtitle">Choose your tool and scratch each card to reveal a special reason why you're so amazing</p>
+    </div>
+
+    <div class="scratch-tools">
+        <h3 class="tools-title">Choose Your Scratching Tool:</h3>
+        <div class="tools-grid">
+            <button class="tool-btn active" data-tool="brush">
+                <span class="tool-icon">🖌️</span>
+                <span class="tool-name">Brush</span>
+            </button>
+            <button class="tool-btn" data-tool="circle">
+                <span class="tool-icon">⭕</span>
+                <span class="tool-name">Circle</span>
+            </button>
+            <button class="tool-btn" data-tool="spray">
+                <span class="tool-icon">✨</span>
+                <span class="tool-name">Sparkle</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="scratch-controls">
+        <button id="reveal-all-btn" class="btn btn-secondary">
+            <span class="btn-icon">✨</span>
+            Reveal All Reasons
+        </button>
+        <button id="reset-cards-btn" class="btn btn-primary">
+            <span class="btn-icon">🔄</span>
+            Reset All Cards
+        </button>
+    </div>
+
+    <div class="cards-grid" id="cards-grid">
+        <!-- Cards will be generated here -->
+    </div>
+
+    <div class="progress-section">
+        <div class="progress-info">
+            <span id="scratched-count">0</span> / 50 cards scratched
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+    </div>
+
+    <div class="love-counter">
+        <div class="counter-card">
+            <div class="counter-number" id="love-level">0</div>
+            <div class="counter-label">Love Level</div>
+        </div>
+    </div>
+</div>
+
+<div class="floating-hearts-scratch">
+    <div class="heart">💖</div>
+    <div class="heart">💕</div>
+    <div class="heart">💗</div>
+    <div class="heart">💓</div>
+    <div class="heart">💝</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cardsGrid = document.getElementById('cards-grid');
+    const revealAllBtn = document.getElementById('reveal-all-btn');
+    const resetCardsBtn = document.getElementById('reset-cards-btn');
+    const scratchedCount = document.getElementById('scratched-count');
+    const progressFill = document.getElementById('progress-fill');
+    const loveLevel = document.getElementById('love-level');
+    const toolBtns = document.querySelectorAll('.tool-btn');
+    
+    let scratchedCards = 0;
+    let currentTool = 'brush';
+    let reasons = [];
+
+    // Tool selection
+    toolBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            toolBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentTool = this.dataset.tool;
+            updateToolSettings();
+        });
+    });
+
+    function updateToolSettings() {
+        const cards = document.querySelectorAll('.scratch-card');
+        cards.forEach(card => {
+            switch(currentTool) {
+                case 'brush':
+                    card.style.cursor = 'crosshair';
+                    break;
+                case 'circle':
+                    card.style.cursor = 'pointer';
+                    break;
+                case 'spray':
+                    card.style.cursor = 'grab';
+                    break;
+            }
+        });
+    }
+
+    // Fetch reasons from server
+    async function loadReasons() {
+        try {
+            reasons = [];
+            // Generate 50 unique reasons
+            for (let i = 0; i < 50; i++) {
+                const response = await fetch('/get-reason');
+                const data = await response.json();
+                reasons.push(data.reason);
+            }
+            createCards();
+        } catch (error) {
+            console.error('Error loading reasons:', error);
+            // Fallback reasons if server fails
+            const fallbackReasons = [
+                "Your beautiful smile brightens my day",
+                "The way you make me laugh",
+                "Your kindness towards others",
+                "How you always support me",
+                "Your amazing cooking skills",
+                "The sound of your voice",
+                "Your intelligence and wisdom",
+                "How you care for our family",
+                "Your beautiful eyes",
+                "Your sense of humor",
+                "The way you hold my hand",
+                "Your strength and resilience",
+                "How you always know what to say",
+                "Your beautiful heart",
+                "The way you look at me",
+                "Your patience with me",
+                "How you make everything better",
+                "Your beautiful soul",
+                "The way you comfort me",
+                "Your amazing personality",
+                "How you understand me",
+                "Your beautiful mind",
+                "The way you love me",
+                "Your incredible spirit",
+                "How you inspire me",
+                "Your beautiful energy",
+                "The way you make me feel safe",
+                "Your amazing presence",
+                "How you complete me",
+                "Your beautiful essence",
+                "The way you touch my heart",
+                "Your incredible love",
+                "How you make me whole",
+                "Your beautiful being",
+                "The way you cherish me",
+                "Your amazing grace",
+                "How you heal my soul",
+                "Your beautiful light",
+                "The way you protect me",
+                "Your incredible warmth",
+                "How you make me dream",
+                "Your beautiful magic",
+                "The way you understand my heart",
+                "Your amazing tenderness",
+                "How you make me believe",
+                "Your beautiful truth",
+                "The way you hold my dreams",
+                "Your incredible faith",
+                "How you make me strong",
+                "Your beautiful courage",
+                "The way you see my soul"
+            ];
+            reasons = fallbackReasons.slice(0, 50);
+            createCards();
+        }
+    }
+
+    function createCards() {
+        cardsGrid.innerHTML = '';
+        
+        for (let i = 0; i < 50; i++) {
+            const cardContainer = document.createElement('div');
+            cardContainer.className = 'card-container';
+            cardContainer.innerHTML = `
+                <div class="card-number">${i + 1}</div>
+                <div class="scratch-card" id="card-${i}" data-index="${i}">
+                    <div class="scratch-overlay">
+                        <div class="scratch-text">💝 Scratch Me 💝</div>
+                    </div>
+                    <div class="card-content">
+                        <div class="reason-text">${reasons[i]}</div>
+                    </div>
+                </div>
+                <div class="card-reason" id="reason-${i}">
+                    <div class="reason-content">${reasons[i]}</div>
+                </div>
+            `;
+            
+            cardsGrid.appendChild(cardContainer);
+            
+            // Add scratch functionality
+            addScratchFunctionality(cardContainer.querySelector('.scratch-card'), i);
+        }
+        
+        updateToolSettings();
+    }
+
+    function addScratchFunctionality(cardElement, index) {
+        let isScratched = false;
+        let isScratching = false;
+        let scratchedPixels = 0;
+        const totalPixels = 200 * 200; // Card size
+        const threshold = 0.3; // 30% scratched to reveal
+
+        const overlay = cardElement.querySelector('.scratch-overlay');
+        const content = cardElement.querySelector('.card-content');
+
+        // Create canvas for scratch effect
+        const canvas = document.createElement('canvas');
+        canvas.width = 200;
+        canvas.height = 200;
+        canvas.style.position = 'absolute';
+        canvas.style.top = '0';
+        canvas.style.left = '0';
+        canvas.style.pointerEvents = 'none';
+        canvas.style.zIndex = '2';
+        
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = 'rgba(224, 176, 255, 0.9)';
+        ctx.fillRect(0, 0, 200, 200);
+        
+        overlay.appendChild(canvas);
+
+        function scratchAt(x, y) {
+            if (isScratched) return;
+            
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.beginPath();
+            
+            // Different scratch patterns based on tool
+            switch(currentTool) {
+                case 'brush':
+                    ctx.arc(x, y, 15, 0, 2 * Math.PI);
+                    scratchedPixels += 15 * 15 * Math.PI;
+                    break;
+                case 'circle':
+                    ctx.arc(x, y, 20, 0, 2 * Math.PI);
+                    scratchedPixels += 20 * 20 * Math.PI;
+                    break;
+                case 'spray':
+                    // Create multiple small circles for spray effect
+                    for (let i = 0; i < 5; i++) {
+                        const offsetX = x + (Math.random() - 0.5) * 20;
+                        const offsetY = y + (Math.random() - 0.5) * 20;
+                        ctx.arc(offsetX, offsetY, 8, 0, 2 * Math.PI);
+                    }
+                    scratchedPixels += 5 * 8 * 8 * Math.PI;
+                    break;
+            }
+            
+            ctx.fill();
+            
+            if (scratchedPixels / totalPixels > threshold && !isScratched) {
+                revealCard(index);
+            }
+        }
+
+        function revealCard(cardIndex) {
+            if (isScratched) return;
+            
+            isScratched = true;
+            scratchedCards++;
+            
+            // Animate the reveal
+            overlay.style.transition = 'opacity 0.5s ease-out';
+            overlay.style.opacity = '0';
+            
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 500);
+            
+            // Show content with animation
+            content.style.display = 'flex';
+            content.style.animation = 'fadeInScale 0.5s ease-out';
+            
+            // Show the reason below the card
+            const reasonElement = document.querySelector(`#reason-${cardIndex}`);
+            reasonElement.style.display = 'block';
+            reasonElement.style.animation = 'fadeInScale 0.5s ease-out';
+            
+            // Add celebration effect
+            const cardContainer = reasonElement.closest('.card-container');
+            cardContainer.classList.add('celebrated');
+            setTimeout(() => {
+                cardContainer.classList.remove('celebrated');
+            }, 1000);
+            
+            updateProgress();
+            triggerConfetti();
+        }
+
+        // Mouse events
+        cardElement.addEventListener('mousedown', function(e) {
+            if (isScratched) return;
+            isScratching = true;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            scratchAt(x, y);
+        });
+
+        cardElement.addEventListener('mousemove', function(e) {
+            if (isScratched || !isScratching) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            scratchAt(x, y);
+        });
+
+        cardElement.addEventListener('mouseup', function() {
+            isScratching = false;
+        });
+
+        cardElement.addEventListener('mouseleave', function() {
+            isScratching = false;
+        });
+
+        // Touch events for mobile
+        cardElement.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            if (isScratched) return;
+            isScratching = true;
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            scratchAt(x, y);
+        });
+
+        cardElement.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+            if (isScratched || !isScratching) return;
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            scratchAt(x, y);
+        });
+
+        cardElement.addEventListener('touchend', function() {
+            isScratching = false;
+        });
+    }
+
+    function updateProgress() {
+        scratchedCount.textContent = scratchedCards;
+        const progress = (scratchedCards / 50) * 100;
+        progressFill.style.width = progress + '%';
+        loveLevel.textContent = Math.floor((scratchedCards / 50) * 100);
+        
+        // Change love level emoji based on progress
+        if (progress >= 100) {
+            loveLevel.innerHTML = '💕';
+        } else if (progress >= 75) {
+            loveLevel.innerHTML = '💖';
+        } else if (progress >= 50) {
+            loveLevel.innerHTML = '💗';
+        } else if (progress >= 25) {
+            loveLevel.innerHTML = '💓';
+        } else {
+            loveLevel.innerHTML = '💝';
+        }
+    }
+
+    function triggerConfetti() {
+        confetti({
+            particleCount: 50,
+            spread: 50,
+            origin: { y: 0.7 }
+        });
+    }
+
+    revealAllBtn.addEventListener('click', function() {
+        const cards = document.querySelectorAll('.scratch-card');
+        cards.forEach((card, index) => {
+            if (!card.classList.contains('scratched')) {
+                const overlay = card.querySelector('.scratch-overlay');
+                const content = card.querySelector('.card-content');
+                const reasonElement = document.querySelector(`#reason-${index}`);
+                
+                overlay.style.transition = 'opacity 0.3s ease-out';
+                overlay.style.opacity = '0';
+                
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    content.style.display = 'flex';
+                    content.style.animation = 'fadeInScale 0.3s ease-out';
+                    reasonElement.style.display = 'block';
+                    reasonElement.style.animation = 'fadeInScale 0.3s ease-out';
+                }, 300);
+                
+                if (!card.classList.contains('scratched')) {
+                    scratchedCards++;
+                    card.classList.add('scratched');
+                }
+            }
+        });
+        updateProgress();
+        triggerConfetti();
+    });
+
+    resetCardsBtn.addEventListener('click', function() {
+        scratchedCards = 0;
+        const cards = document.querySelectorAll('.scratch-card');
+        cards.forEach((card, index) => {
+            card.classList.remove('scratched');
+            const overlay = card.querySelector('.scratch-overlay');
+            const content = card.querySelector('.card-content');
+            const reasonElement = document.querySelector(`#reason-${index}`);
+            
+            overlay.style.display = 'block';
+            overlay.style.opacity = '1';
+            content.style.display = 'none';
+            reasonElement.style.display = 'none';
+            
+            // Reset canvas
+            const canvas = overlay.querySelector('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.fillStyle = 'rgba(224, 176, 255, 0.9)';
+            ctx.fillRect(0, 0, 200, 200);
+        });
+        updateProgress();
+        loadReasons(); // Reload with new reasons
+    });
+
+    // Load initial reasons
+    loadReasons();
+});
+</script>
+{% endblock %} 

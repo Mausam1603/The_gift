@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>{% block title %}💌 Reasons Why I Love You{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+    <div class="confetti-container"></div>
+    
+    <nav class="navbar">
+        <div class="nav-container">
+                            <h1 class="nav-title">💌 Reasons Why I Love You 💌</h1>
+            <ul class="nav-menu">
+                <li><a href="{{ url_for('home') }}" class="nav-link">Home</a></li>
+                <li><a href="{{ url_for('memory_box') }}" class="nav-link">Memory Box</a></li>
+                <li><a href="{{ url_for('scratch_cards') }}" class="nav-link">Love Reasons</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="{{ url_for('static', filename='js/confetti.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html> 

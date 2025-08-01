@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome to My Love Gift{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="hero-content">
+        <h1 class="hero-title">Welcome to Our Love Story</h1>
+        <p class="hero-subtitle">A special gift made with love, just for you 💕</p>
+        
+        <div class="hero-buttons">
+            <a href="{{ url_for('memory_box') }}" class="btn btn-primary">
+                <span class="btn-icon">📸</span>
+                Memory Box
+            </a>
+            <a href="{{ url_for('scratch_cards') }}" class="btn btn-secondary">
+                <span class="btn-icon">💝</span>
+                50 Reasons Why I Love You
+            </a>
+        </div>
+    </div>
+    
+    <div class="floating-hearts">
+        <div class="heart">💖</div>
+        <div class="heart">💕</div>
+        <div class="heart">💗</div>
+        <div class="heart">💓</div>
+        <div class="heart">💝</div>
+    </div>
+</div>
+
+<div class="features-section">
+    <h2 class="section-title">What's Inside This Gift?</h2>
+    
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">📸</div>
+            <h3>Memory Box</h3>
+            <p>Upload and cherish our special moments together</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">💝</div>
+            <h3>50 Love Reasons</h3>
+            <p>Scratch to reveal why you're so special to me</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">✨</div>
+            <h3>Magical Effects</h3>
+            <p>Beautiful confetti and animations to celebrate us</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">💕</div>
+            <h3>Made with Love</h3>
+            <p>Every pixel crafted with love and care</p>
+        </div>
+    </div>
+</div>
+
+<div class="love-message">
+    <h2 class="message-title">To My Amazing Boyfriend</h2>
+    <p class="message-text">
+        You make every day feel like a celebration. This little gift is my way of showing you 
+        just how much you mean to me. Every reason, every memory, every moment with you is precious. 
+        Thank you for being the incredible person you are. I love you more than words can express! 💕
+    </p>
+</div>
+{% endblock %} 
