@@ -124,12 +124,53 @@ def upload_photo():
         'files': uploaded_files
     })
 
+# Add the missing route that the frontend expects
+@app.route('/upload-photo', methods=['POST'])
+def upload_photo_alt():
+    if 'photo' not in request.files:
+        return jsonify({'error': 'No file selected'}), 400
+    
+    file = request.files['photo']
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+        
+    if file and allowed_file(file.filename):
+        # Create unique filename
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        unique_id = str(uuid.uuid4())[:8]
+        filename = secure_filename(file.filename)
+        name, ext = os.path.splitext(filename)
+        new_filename = f"{name}_{timestamp}_{unique_id}{ext}"
+        
+        # Save file
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], new_filename)
+        file.save(file_path)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Photo uploaded successfully',
+            'filename': new_filename,
+            'url': f'/uploads/{new_filename}',
+            'upload_date': datetime.now().isoformat()
+        })
+    
+    return jsonify({'error': 'Invalid file type'}), 400
+
 @app.route('/delete-photo/<filename>', methods=['DELETE'])
 def delete_photo(filename):
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     if os.path.exists(file_path):
         os.remove(file_path)
         return jsonify({'success': True, 'message': 'Photo deleted successfully'})
+    return jsonify({'error': 'File not found'}), 404
+
+# Add the missing route that the frontend expects
+@app.route('/delete-memory/<filename>', methods=['DELETE'])
+def delete_memory(filename):
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        return jsonify({'success': True, 'message': 'Memory deleted successfully'})
     return jsonify({'error': 'File not found'}), 404
 
 @app.route('/uploads/<filename>')
@@ -142,6 +183,38 @@ def get_reasons():
     shuffled_reasons = LOVE_REASONS.copy()
     random.shuffle(shuffled_reasons)
     return jsonify({'reasons': shuffled_reasons})
+
+# Add the missing route that the frontend expects
+@app.route('/get-reason')
+def get_reason():
+    # Return a single random reason
+    reason = random.choice(LOVE_REASONS)
+    return jsonify({'reason': reason})
+
+# Add the missing route that the frontend expects
+@app.route('/get-memories')
+def get_memories():
+    memories = []
+    if os.path.exists(app.config['UPLOAD_FOLDER']):
+        for filename in os.listdir(app.config['UPLOAD_FOLDER']):
+            if allowed_file(filename):
+                # Get file creation time
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                creation_time = os.path.getctime(file_path)
+                upload_date = datetime.fromtimestamp(creation_time).isoformat()
+                
+                memories.append({
+                    'filename': filename,
+                    'url': f'/uploads/{filename}',
+                    'upload_date': upload_date
+                })
+    
+    return jsonify({'memories': memories})
+
+# Add a health check route for Render
+@app.route('/health')
+def health_check():
+    return jsonify({'status': 'healthy', 'message': 'Service is running'})
 
 if __name__ == '__main__':
     # Get port from environment variable (for production) or use 5000

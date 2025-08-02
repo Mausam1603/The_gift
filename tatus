@@ -1,0 +1,13 @@
+[1mdiff --git a/templates/base.html b/templates/base.html[m
+[1mindex 8029e6c..ddacd38 100644[m
+[1m--- a/templates/base.html[m
+[1m+++ b/templates/base.html[m
+[36m@@ -15,7 +15,7 @@[m
+         <div class="nav-container">[m
+                             <h1 class="nav-title">💌 Reasons Why I Love You 💌</h1>[m
+             <ul class="nav-menu">[m
+[31m-                <li><a href="{{ url_for('home') }}" class="nav-link">Home</a></li>[m
+[32m+[m[32m                <li><a href="{{ url_for('index') }}" class="nav-link">Home</a></li>[m
+                 <li><a href="{{ url_for('memory_box') }}" class="nav-link">Memory Box</a></li>[m
+                 <li><a href="{{ url_for('scratch_cards') }}" class="nav-link">Love Reasons</a></li>[m
+             </ul>[m
